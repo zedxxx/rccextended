@@ -1,8 +1,8 @@
 #ifndef REVERSE_H
 #define REVERSE_H
 
-#include <QtCore/QString>
-#include <QtCore/QDir>
+#include <qstring.h>
+#include <qdir.h>
 
 class RCCReverseLib
 {
@@ -21,7 +21,7 @@ private:
     QString m_log;
     void recurRccReverse(const QDir& dir, const QString path);
     void qrcWrite(QString qrc, QString fpath);
-    void toLog (QString text);
+    void toLog (const QString text);
 };
 
 #endif // REVERSE_H

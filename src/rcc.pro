@@ -1,7 +1,7 @@
-QT       += core xml
-QT       -= gui
+QT += core xml
+QT -= gui
 
-TARGET    = rcc
+TARGET = rcc
 
 CONFIG += console
 CONFIG += static
@@ -10,11 +10,11 @@ CONFIG += release
 
 TEMPLATE = app
 
-SOURCES += main.cpp \
-    reverse.cpp \
-    rcc.cpp
+DEFINES += QT_RCC QT_NO_FOREACH
+DEFINES += QT_FEATURE_zstd=-1
+DEFINES += STATIC
 
-HEADERS += rcc.h \
-    reverse.h    
+include(rcc.pri)
+SOURCES += main.cpp
 
 RC_FILE = rcc.rc

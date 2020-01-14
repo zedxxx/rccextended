@@ -1,32 +1,34 @@
 #include "reverse.h"
+
 #include <QtCore/QResource>
 #include <QtCore/QFile>
 #include <QtCore/QTextStream>
+
 #include <iostream>
 
 RCCReverseLib::RCCReverseLib()
 {
-    m_res_path = "./qresource/res/";
-    m_qrc_path = "./qresource/qrc/";
-    m_bat_path = "./qresource/rcc/";
-    m_log_path = "./qresource/";
-    m_mask     = "*.rcc";
+    m_res_path = QLatin1String("./qresource/res/");
+    m_qrc_path = QLatin1String("./qresource/qrc/");
+    m_bat_path = QLatin1String("./qresource/rcc/");
+    m_log_path = QLatin1String("./qresource/");
+    m_mask     = QLatin1String("*.rcc");
 
-    m_bat = "";
-    m_rcc = "";
-    m_log = "";
+    m_bat = QLatin1String("");
+    m_rcc = QLatin1String("");
+    m_log = QLatin1String("");
 
 }
 
 void RCCReverseLib::rccReverse(const QDir& dir)
 {
-    QDir tmp("./");
+    QDir tmp(QLatin1String("./"));
     tmp.mkpath(m_qrc_path);
     tmp.mkpath(m_bat_path);    
 
-    QStringList listFiles = dir.entryList(m_mask.split(" "), QDir::Files);
+    QStringList listFiles = dir.entryList(m_mask.split(QLatin1String(" ")), QDir::Files);
 
-    foreach (QString rccFile, listFiles)
+    for (const QString rccFile : listFiles)
     {
         toLog("Found file: " + rccFile + "\n");
 
@@ -77,10 +79,9 @@ void RCCReverseLib::recurRccReverse(const QDir& dir, const QString path)
 
     dir.addSearchPath(":", dir.path());
 
-    // парсим файлы
     QStringList listFiles = dir.entryList(QDir::Files);
 
-    foreach (QString resFile, listFiles)
+    for (const QString resFile : listFiles)
     {
         toLog("Found resource file: " + dir.absoluteFilePath(resFile) + "\n");
 
@@ -97,10 +98,9 @@ void RCCReverseLib::recurRccReverse(const QDir& dir, const QString path)
         file.close();
     }
 
-    // парсим папки
     QStringList listDirs = dir.entryList(QDir::Dirs|QDir::NoDotAndDotDot);
 
-    foreach (QString resDir, listDirs)
+    for (const QString resDir : listDirs)
     {
         toLog("Found resource folder: " + resDir + "\n");
         if (dir.path() != ":/") {
@@ -137,7 +137,7 @@ void RCCReverseLib::qrcWrite(QString qrc, QString fpath)
                 QTextStream stream(&file);
                 stream << m_qrc;
 
-                m_bat = m_bat + "rcc.exe -binary ./../qrc/" + qrc + ".qrc" + " -o ./../rcc/" + qrc + ".rcc\n";
+                m_bat = m_bat + "rcc.exe --format-version 1 --binary ./../qrc/" + qrc + ".qrc" + " -o ./../rcc/" + qrc + ".rcc\n";
 
             }
             file.close();
