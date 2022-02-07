@@ -27,7 +27,7 @@ void RCCReverseLib::rccReverse(const QDir& dir)
 
     QStringList listFiles = dir.entryList(m_mask.split(QLatin1String(" ")), QDir::Files);
 
-    for (const QString rccFile : listFiles)
+    for (const QString& rccFile : listFiles)
     {
         toLog("Found file: " + rccFile + "\n");
 
@@ -80,7 +80,7 @@ void RCCReverseLib::recurRccReverse(const QDir& dir, const QString path)
 
     QStringList listFiles = dir.entryList(QDir::Files);
 
-    for (const QString resFile : listFiles)
+    for (const QString& resFile : listFiles)
     {
         toLog("Found resource file: " + dir.absoluteFilePath(resFile) + "\n");
 
@@ -99,7 +99,7 @@ void RCCReverseLib::recurRccReverse(const QDir& dir, const QString path)
 
     QStringList listDirs = dir.entryList(QDir::Dirs|QDir::NoDotAndDotDot);
 
-    for (const QString resDir : listDirs)
+    for (const QString& resDir : listDirs)
     {
         toLog("Found resource folder: " + resDir + "\n");
         if (dir.path() != ":/") {
