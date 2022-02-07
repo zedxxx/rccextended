@@ -1,6 +1,8 @@
-*Read this in other languages:* [Русский](readme.ru.md)
+*Read this in other languages: [Русский](readme.ru.md)*
 
 ----
+
+## Description
 
 RccExtended - compiler and **decompiler** for binary Qt resources (files with the .rcc extension).
 
@@ -8,7 +10,7 @@ The utility allows you to edit the resources of Qt programs without having their
 
 Editing algorithm:
   
-  - unpack / decompile binary Qt resources (using this utility)
+  - unpack (decompile) binary Qt resources (using this utility)
   - edit unpacked files (.png, .xml, etc.) by third-party tools
   - compile of edited files back into binary Qt resources (using this utility)
 
@@ -29,6 +31,19 @@ Once launched, the utility performs the following actions:
 
 Usage example:
 ```
-    cd \Path\To\MyQtResources\
+    cd /Path/To/My/QtResources
     rcc --reverse
 ```
+
+----
+
+## How to build from sources?
+
+Windows: 
+    
+  - install [MSYS2](https://www.msys2.org/wiki/MSYS2-installation/) environment
+  - install qt5-static package
+  - navigate to the `RccExtended/src` folder and run command:
+      ```
+      qmake rcc.pro && make
+      ```
