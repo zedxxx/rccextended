@@ -14,10 +14,9 @@ RCCReverseLib::RCCReverseLib()
     m_log_path = QLatin1String("./qresource/");
     m_mask     = QLatin1String("*.rcc");
 
-    m_bat = QLatin1String("");
+    m_bat = QLatin1String("@echo off\r\n\r\nset rcc=rcc.exe\r\nset opt=--verbose --format-version 1 --binary\r\n\r\n");
     m_rcc = QLatin1String("");
     m_log = QLatin1String("");
-
 }
 
 void RCCReverseLib::rccReverse(const QDir& dir)
@@ -53,7 +52,7 @@ void RCCReverseLib::rccReverse(const QDir& dir)
         if ( file.open(QIODevice::WriteOnly) )
         {
             QTextStream stream(&file);
-            stream << m_bat;
+            stream << m_bat << "\r\npause\r\n";
         }
         file.close();
     }
@@ -137,8 +136,7 @@ void RCCReverseLib::qrcWrite(QString qrc, QString fpath)
                 QTextStream stream(&file);
                 stream << m_qrc;
 
-                m_bat = m_bat + "rcc.exe --format-version 1 --binary ./../qrc/" + qrc + ".qrc" + " -o ./../rcc/" + qrc + ".rcc\n";
-
+                m_bat = m_bat + "%rcc% %opt% ./../qrc/" + qrc + ".qrc" + " -o ./../rcc/" + qrc + ".rcc\r\n";
             }
             file.close();
         }
