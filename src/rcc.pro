@@ -17,4 +17,8 @@ DEFINES += STATIC
 include(rcc.pri)
 SOURCES += main.cpp
 
-RC_FILE = rcc.rc
+QMAKE_TARGET_DESCRIPTION="Qt Resource Compiler and Decompiler (RccExtended)"
+QMAKE_TARGET_COPYRIGHT="Copyright (C) 2022, The Qt Company Ltd."
+
+VERSION=5.15.2
+RC_ICONS=rcc.ico
