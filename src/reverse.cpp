@@ -6,6 +6,13 @@
 
 #include <iostream>
 
+static const char* bat_file_name = "rcc-make"
+#ifdef Q_OS_WIN
+  ".bat";
+#else
+  ".sh";
+#endif
+
 RCCReverseLib::RCCReverseLib()
 {
     m_res_path = QLatin1String("./qresource/res/");
@@ -13,10 +20,18 @@ RCCReverseLib::RCCReverseLib()
     m_bat_path = QLatin1String("./qresource/rcc/");
     m_log_path = QLatin1String("./qresource/");
     m_mask     = QLatin1String("*.rcc");
-
-    m_bat = QLatin1String("@echo off\r\n\r\nset rcc=rcc.exe\r\nset opt=--verbose --format-version 1 --binary\r\n\r\n");
+    
     m_rcc = QLatin1String("");
     m_log = QLatin1String("");
+    m_bat = QLatin1String("");
+    
+    const char *opt = "--verbose --compress-algo zlib --format-version 1 --binary";
+    
+    #ifdef Q_OS_WIN
+    m_bat = m_bat + "@echo off" + "\r\n\r\n" + "set rcc=rcc.exe" + "\r\n" + "set opt=" + opt + "\r\n\r\n";
+    #else
+    m_bat = m_bat + "#!/usr/bin/bash" + "\n\n" + "opt=" + opt + "\n\n";
+    #endif
 }
 
 void RCCReverseLib::rccReverse(const QDir& dir)
@@ -47,12 +62,15 @@ void RCCReverseLib::rccReverse(const QDir& dir)
     }
 
     if (m_bat != "")
-    {
-        QFile file(m_bat_path + "make.bat");
+    {        
+        QFile file(m_bat_path + bat_file_name);
         if ( file.open(QIODevice::WriteOnly) )
         {
             QTextStream stream(&file);
-            stream << m_bat << "\r\npause\r\n";
+            stream << m_bat;
+            #ifdef Q_OS_WIN
+            stream << "\r\n" << "pause" << "\r\n";
+            #endif
         }
         file.close();
     }
@@ -135,8 +153,11 @@ void RCCReverseLib::qrcWrite(QString qrc, QString fpath)
             {
                 QTextStream stream(&file);
                 stream << m_qrc;
-
+                #ifdef Q_OS_WIN
                 m_bat = m_bat + "%rcc% %opt% ./../qrc/" + qrc + ".qrc" + " -o ./../rcc/" + qrc + ".rcc\r\n";
+                #else
+                m_bat = m_bat + "rcc ${opt} ./../qrc/" + qrc + ".qrc" + " -o ./../rcc/" + qrc + ".rcc\n";
+                #endif
             }
             file.close();
         }
