@@ -11,8 +11,12 @@ CONFIG += release
 TEMPLATE = app
 
 DEFINES += QT_RCC QT_NO_FOREACH
-DEFINES += QT_FEATURE_zstd=-1
+DEFINES += QT_FEATURE_zstd=1
 DEFINES += STATIC
+
+contains(DEFINES, QT_FEATURE_zstd=1) {
+    LIBS += -lzstd
+}
 
 include(rcc.pri)
 SOURCES += main.cpp
