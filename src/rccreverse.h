@@ -1,5 +1,5 @@
-#ifndef REVERSE_H
-#define REVERSE_H
+#ifndef RCCREVERSE_H
+#define RCCREVERSE_H
 
 #include <QString>
 #include <QDir>
@@ -26,4 +26,4 @@ private:
     void toLog(const QString &text);
 };
 
-#endif // REVERSE_H
+#endif // RCCREVERSE_H

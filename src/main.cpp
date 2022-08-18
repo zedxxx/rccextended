@@ -27,9 +27,6 @@
 **
 ****************************************************************************/
 
-#include <rcc.h>
-#include <reverse.h>
-
 #include <qdebug.h>
 #include <qdir.h>
 #include <qfile.h>
@@ -47,6 +44,9 @@
 #  include <io.h>
 #  include <stdio.h>
 #endif // Q_OS_WIN
+
+#include "rcc.h"
+#include "rccreverse.h"
 
 QT_BEGIN_NAMESPACE
 

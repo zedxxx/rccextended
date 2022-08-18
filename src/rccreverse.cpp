@@ -3,7 +3,7 @@
 #include <QFile>
 #include <QTextStream>
 
-#include "reverse.h"
+#include "rccreverse.h"
 
 static const char* bat_file_name = "rcc-make"
 #ifdef Q_OS_WIN
