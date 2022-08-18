@@ -1,10 +1,9 @@
+#include <QDebug>
+#include <QResource>
+#include <QFile>
+#include <QTextStream>
+
 #include "reverse.h"
-
-#include <QtCore/QResource>
-#include <QtCore/QFile>
-#include <QtCore/QTextStream>
-
-#include <iostream>
 
 static const char* bat_file_name = "rcc-make"
 #ifdef Q_OS_WIN
@@ -13,13 +12,14 @@ static const char* bat_file_name = "rcc-make"
   ".sh";
 #endif
 
-RCCReverseLib::RCCReverseLib()
+RccReverse::RccReverse()
 {
-    m_res_path = QLatin1String("./qresource/res/");
-    m_qrc_path = QLatin1String("./qresource/qrc/");
-    m_bat_path = QLatin1String("./qresource/rcc/");
-    m_log_path = QLatin1String("./qresource/");
-    m_mask     = QLatin1String("*.rcc");
+    QString rootPath(QLatin1String("./qresource/"));
+
+    m_resPath = rootPath + QLatin1String("res/");
+    m_qrcPath = rootPath + QLatin1String("qrc/");
+    m_batPath = rootPath + QLatin1String("rcc/");
+    m_logPath = rootPath;
     
     m_rcc = QLatin1String("");
     m_log = QLatin1String("");
@@ -34,16 +34,15 @@ RCCReverseLib::RCCReverseLib()
     #endif
 }
 
-void RCCReverseLib::rccReverse(const QDir& dir)
+void RccReverse::rccReverse(const QDir &dir)
 {
     QDir tmp(QLatin1String("./"));
-    tmp.mkpath(m_qrc_path);
-    tmp.mkpath(m_bat_path);    
+    tmp.mkpath(m_qrcPath);
+    tmp.mkpath(m_batPath);
 
-    QStringList listFiles = dir.entryList(m_mask.split(QLatin1String(" ")), QDir::Files);
+    const QStringList listFiles = dir.entryList(QStringList(QLatin1String("*.rcc")), QDir::Files);
 
-    for (const QString& rccFile : listFiles)
-    {
+    for (const QString &rccFile : listFiles) {
         toLog("Found file: " + rccFile + "\n");
 
         QResource rcc;
@@ -54,18 +53,16 @@ void RCCReverseLib::rccReverse(const QDir& dir)
 
         qrcWrite("", "");
 
-        recurRccReverse(QDir(":/"), m_res_path + rccFile + "/");
+        recurRccReverse(QDir(":/"), m_resPath + rccFile + "/");
 
         qrcWrite(rccFile, "");
 
         rcc.unregisterResource(rccFile);
     }
 
-    if (m_bat != "")
-    {        
-        QFile file(m_bat_path + bat_file_name);
-        if ( file.open(QIODevice::WriteOnly) )
-        {
+    if (m_bat != "") {
+        QFile file(m_batPath + bat_file_name);
+        if ( file.open(QIODevice::WriteOnly) ) {
             QTextStream stream(&file);
             stream << m_bat;
             #ifdef Q_OS_WIN
@@ -75,11 +72,9 @@ void RCCReverseLib::rccReverse(const QDir& dir)
         file.close();
     }
 
-    if (m_log != "")
-    {
-        QFile file(m_log_path + "rcc.log");
-        if ( file.open(QIODevice::WriteOnly) )
-        {
+    if (m_log != "") {
+        QFile file(m_logPath + "rcc.log");
+        if ( file.open(QIODevice::WriteOnly) ) {
             QTextStream stream(&file);
             stream << m_log;
         }
@@ -87,7 +82,7 @@ void RCCReverseLib::rccReverse(const QDir& dir)
     }
 }
 
-void RCCReverseLib::recurRccReverse(const QDir& dir, const QString path)
+void RccReverse::recurRccReverse(const QDir &dir, const QString &path)
 {
     QDir tmp("./");
 
@@ -96,18 +91,16 @@ void RCCReverseLib::recurRccReverse(const QDir& dir, const QString path)
 
     dir.addSearchPath(":", dir.path());
 
-    QStringList listFiles = dir.entryList(QDir::Files);
+    const QStringList listFiles = dir.entryList(QDir::Files);
 
-    for (const QString& resFile : listFiles)
-    {
+    for (const QString &resFile : listFiles) {
         toLog("Found resource file: " + dir.absoluteFilePath(resFile) + "\n");
 
         QFile file(dir.absoluteFilePath(resFile));
 
         file.open(QIODevice::ReadWrite);
 
-        if (file.copy(dir.absoluteFilePath(resFile), path + resFile))
-        {
+        if (file.copy(dir.absoluteFilePath(resFile), path + resFile)) {
             qrcWrite("", dir.absoluteFilePath(resFile));
 
             toLog("Resource restored to file: " + path + resFile + "\n");
@@ -115,42 +108,34 @@ void RCCReverseLib::recurRccReverse(const QDir& dir, const QString path)
         file.close();
     }
 
-    QStringList listDirs = dir.entryList(QDir::Dirs|QDir::NoDotAndDotDot);
+    const QStringList listDirs = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
 
-    for (const QString& resDir : listDirs)
-    {
+    for (const QString &resDir : listDirs) {
         toLog("Found resource folder: " + resDir + "\n");
         if (dir.path() != ":/") {
             recurRccReverse(QDir(dir.path() + "/" + resDir), path + resDir + "/");
-        }
-        else
+        } else {
             recurRccReverse(QDir(dir.path() + resDir), path + resDir + "/");
+        }
     }
 }
 
-void RCCReverseLib::qrcWrite(QString qrc, QString fpath)
+void RccReverse::qrcWrite(QString qrc, QString path)
 {
-    if (fpath != "")
-    {
-        fpath.replace(":/", "");
-        m_qrc = m_qrc + "<file alias=\"" + fpath + "\">./../res/" + m_rcc + "/" + fpath + "</file>\n";
-    }
-    else
-    {
-        if (qrc == "")
-        {
+    if (path != "") {
+        path.replace(":/", "");
+        m_qrc = m_qrc + "<file alias=\"" + path + "\">./../res/" + m_rcc + "/" + path + "</file>\n";
+    } else {
+        if (qrc == "") {
             m_qrc = QLatin1String("<!DOCTYPE RCC><RCC version=\"1.0\">\n"
                                   "<qresource>\n");
-        }
-        else
-        {
+        } else {
             m_qrc = m_qrc + QLatin1String("</qresource>\n"
                                           "</RCC>\n");
 
             qrc.replace(".rcc", "");
-            QFile file(m_qrc_path + qrc + ".qrc");
-            if ( file.open(QIODevice::WriteOnly) )
-            {
+            QFile file(m_qrcPath + qrc + ".qrc");
+            if ( file.open(QIODevice::WriteOnly) ) {
                 QTextStream stream(&file);
                 stream << m_qrc;
                 #ifdef Q_OS_WIN
@@ -164,9 +149,8 @@ void RCCReverseLib::qrcWrite(QString qrc, QString fpath)
     }
 }
 
-void RCCReverseLib::toLog (const QString text)
+void RccReverse::toLog(const QString &text)
 {
-    std::cout << text.toLocal8Bit().data();
-
-    m_log = m_log + text;
+    qInfo() << text;
+    m_log += text;
 }

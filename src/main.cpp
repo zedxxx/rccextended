@@ -230,7 +230,7 @@ int runRcc(int argc, char *argv[])
     parser.process(app);
 
     if (parser.isSet(reverseOption)) {
-        RCCReverseLib r;
+        RccReverse r;
         r.rccReverse(QDir(QLatin1String("./")));
         return 0;
     }
