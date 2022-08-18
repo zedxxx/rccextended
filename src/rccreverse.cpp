@@ -4,139 +4,234 @@
 #include <QTextStream>
 
 #include "logger.h"
+#include "resinfo.h"
 #include "rccreverse.h"
 
-static const char* bat_file_name = "rcc-make"
-#ifdef Q_OS_WIN
-  ".bat";
-#else
-  ".sh";
-#endif
+static const QString rootPath("./qresource/");
+static const QString resPath(rootPath + "res/");
+static const QString qrcPath(rootPath + "qrc/");
+static const QString scriptPath(rootPath + "rcc/");
 
-static const QString rootPath(QLatin1String("./qresource/"));
+static bool mkpath(const QString &path)
+{
+    QDir dir("./");
+    bool ret = dir.mkpath(path);
+
+    if (!ret)
+        qInfo() << "ERROR: Can't create folder:" << path;
+
+    return ret;
+}
 
 RccReverse::RccReverse()
 {
-    m_resPath = rootPath + QLatin1String("res/");
-    m_qrcPath = rootPath + QLatin1String("qrc/");
-    m_batPath = rootPath + QLatin1String("rcc/");
-
-    m_rcc = QLatin1String("");    
-    m_bat = QLatin1String("");
-    
-    const char *opt = "--verbose --compress-algo zlib --format-version 1 --binary";
-    
-    #ifdef Q_OS_WIN
-    m_bat = m_bat + "@echo off" + "\r\n\r\n" + "set rcc=rcc.exe" + "\r\n" + "set opt=" + opt + "\r\n\r\n";
-    #else
-    m_bat = m_bat + "#!/usr/bin/bash" + "\n\n" + "opt=" + opt + "\n\n";
-    #endif
+    m_currLocale = QLocale::system();
 }
 
 void RccReverse::run(const QDir &dir)
 {
-    Logger logger(rootPath + QLatin1String("log.txt"));
+    if (!mkpath(rootPath) || !mkpath(resPath) || !mkpath(qrcPath) || !mkpath(scriptPath) )
+        return;
 
-    QDir tmp(QLatin1String("./"));
-    tmp.mkpath(m_qrcPath);
-    tmp.mkpath(m_batPath);
+    Logger logger(rootPath + "log.txt");
 
-    const QStringList listFiles = dir.entryList(QStringList(QLatin1String("*.rcc")), QDir::Files);
+    ResInfo resInfo;
+
+    const QStringList listFiles = dir.entryList(QStringList("*.rcc"), QDir::Files);
 
     for (const QString &rccFile : listFiles) {
-        qInfo() << "Found file:" << rccFile;
+        qInfo() << "Processing file:" << rccFile;
+
+        resInfo.setFileName(rccFile);
+        if (!resInfo.read()) {
+            qInfo() << "WARNING: Only resources for the default/system locale will be extracted";
+        }
+
+        updateLocale();
 
         QResource rcc;
-
         rcc.registerResource(rccFile);
 
-        m_rcc = rccFile;
-
-        qrcWrite("", "");
-
-        recurRccReverse(QDir(":/"), m_resPath + rccFile + "/");
-
-        qrcWrite(rccFile, "");
+        extractResourses(QDir(":/"), resPath + rccFile + "/", resInfo);
 
         rcc.unregisterResource(rccFile);
+
+        qrcSave(rccFile);
+        scriptWrite(rccFile);
     }
 
-    if (m_bat != "") {
-        QFile file(m_batPath + bat_file_name);
-        if ( file.open(QIODevice::WriteOnly) ) {
-            QTextStream stream(&file);
-            stream << m_bat;
-            #ifdef Q_OS_WIN
-            stream << "\r\n" << "pause" << "\r\n";
-            #endif
-        }
-        file.close();
-    }
+    scriptSave();
 }
 
-void RccReverse::recurRccReverse(const QDir &dir, const QString &path)
+void RccReverse::extractResourses(const QDir &dir, const QString &destPath, ResInfo &resInfo)
 {
-    QDir tmp("./");
-
-    if ( tmp.mkpath(path) )
-        qInfo() << "Create folder:" << path;
+    if (!mkpath(destPath))
+        return;
 
     dir.addSearchPath(":", dir.path());
 
+    // process files
     const QStringList listFiles = dir.entryList(QDir::Files);
 
     for (const QString &resFile : listFiles) {
-        qInfo() << "Found resource file:" << dir.absoluteFilePath(resFile);
 
-        QFile file(dir.absoluteFilePath(resFile));
+        const QString srcFileName(dir.absoluteFilePath(resFile));
+         QString destFileName(destPath + resFile);
 
-        file.open(QIODevice::ReadWrite);
+        const QList<ResItem> info = resInfo.getInfo(srcFileName);
 
-        if (file.copy(dir.absoluteFilePath(resFile), path + resFile)) {
-            qrcWrite("", dir.absoluteFilePath(resFile));
+        if (info.isEmpty()) {
+            qInfo() << "Found resource file:" << srcFileName;
+            updateLocale();
+            extractFile(srcFileName, destFileName, "");
+        } else {
+            for (const ResItem &item : info) {
+                QLocale locale(QLocale::Language(item.language),
+                               QLocale::Country(item.country));
 
-            qInfo() << "Resource restored to file:" << path + resFile;
+                bool nameOk = (locale.country() == QLocale::AnyCountry) &&
+                              (locale.language() == QLocale::AnyLanguage || locale.language() == QLocale::C);
+
+                QString dest;
+                QString lang("");
+
+                if (nameOk) {
+                    qInfo() << "Found resource file:" << srcFileName;
+                    dest = destFileName;
+                } else {
+                    qInfo() << "Found resource file:" << srcFileName << locale;
+                    lang = locale.bcp47Name();
+
+                    QString path(destPath + lang + "/");
+                    if (!mkpath(path)) {
+                        continue;
+                    }
+                    dest = path + resFile;
+                }
+
+                updateLocale(locale);
+                extractFile(srcFileName, dest, lang);
+            }
         }
-        file.close();
     }
 
+    // process subfolders (recursion)
     const QStringList listDirs = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
 
     for (const QString &resDir : listDirs) {
         qInfo() << "Found resource folder:" << resDir;
-        if (dir.path() != ":/") {
-            recurRccReverse(QDir(dir.path() + "/" + resDir), path + resDir + "/");
-        } else {
-            recurRccReverse(QDir(dir.path() + resDir), path + resDir + "/");
-        }
+        QDir subDir = dir.path() + (dir.path() == ":/" ? "" : "/") + resDir;
+        extractResourses(subDir, destPath + resDir + "/", resInfo);
     }
 }
 
-void RccReverse::qrcWrite(QString qrc, QString path)
+void RccReverse::extractFile(const QString &fileName, const QString &outFileName, QString lang)
 {
-    if (path != "") {
-        path.replace(":/", "");
-        m_qrc = m_qrc + "<file alias=\"" + path + "\">./../res/" + m_rcc + "/" + path + "</file>\n";
-    } else {
-        if (qrc == "") {
-            m_qrc = QLatin1String("<!DOCTYPE RCC><RCC version=\"1.0\">\n"
-                                  "<qresource>\n");
-        } else {
-            m_qrc = m_qrc + QLatin1String("</qresource>\n"
-                                          "</RCC>\n");
+    qrcWrite(fileName, outFileName, lang);
 
-            qrc.replace(".rcc", "");
-            QFile file(m_qrcPath + qrc + ".qrc");
-            if ( file.open(QIODevice::WriteOnly) ) {
-                QTextStream stream(&file);
-                stream << m_qrc;
-                #ifdef Q_OS_WIN
-                m_bat = m_bat + "%rcc% %opt% ./../qrc/" + qrc + ".qrc" + " -o ./../rcc/" + qrc + ".rcc\r\n";
-                #else
-                m_bat = m_bat + "rcc ${opt} ./../qrc/" + qrc + ".qrc" + " -o ./../rcc/" + qrc + ".rcc\n";
-                #endif
-            }
-            file.close();
-        }
+    if (QFile::exists(outFileName)) {
+        qInfo() << "File already exists:" << outFileName;
+        return;
+    }
+
+    if (QFile::copy(fileName, outFileName)) {
+        qInfo() << "File extracted to:" << outFileName;
+    } else {
+        qInfo() << "ERROR: Can't save file to:" << outFileName;
+    }
+}
+
+void RccReverse::qrcWrite(const QString &resFileName, const QString &outFileName, const QString &lang)
+{
+    QString aliasName(resFileName);
+    aliasName.replace(":/", "");
+
+    QString fileName(outFileName);
+    fileName.replace(rootPath, "./../");
+
+    const QString alias = "<file alias=\"" + aliasName + "\">" + fileName + "</file>\n";
+
+    if (!lang.isEmpty()) {
+        m_qrc = m_qrc +
+                "<qresource lang=\"" + lang + "\">" + "\n" +
+                "    " + alias +
+                "</qresource>" + "\n";
+    } else {
+        m_qrc = m_qrc + alias;
+    }
+}
+
+void RccReverse::qrcSave(const QString &rccFileName)
+{
+    QString fileName(rccFileName);
+    fileName.replace(".rcc", "");
+
+    QFile file(qrcPath + fileName + ".qrc");
+    if ( file.open(QIODevice::WriteOnly) ) {
+        QTextStream stream(&file);
+
+        stream << "<!DOCTYPE RCC><RCC version=\"1.0\">\n"
+               << "<qresource>\n"
+               <<  m_qrc
+               << "</qresource>\n"
+               << "</RCC>\n";
+
+        file.close();
+    }
+}
+
+void RccReverse::scriptWrite(const QString &rccFileName)
+{
+    QString fileName(rccFileName);
+    fileName.replace(".rcc", "");
+
+    #ifdef Q_OS_WIN
+    m_bat = m_bat + "%rcc% %opt% ./../qrc/" + fileName + ".qrc" + " -o ./../rcc/" + fileName + ".rcc\r\n";
+    #else
+    m_bat = m_bat + "rcc ${opt} ./../qrc/" + fileName + ".qrc" + " -o ./../rcc/" + fileName + ".rcc\n";
+    #endif
+}
+
+void RccReverse::scriptSave()
+{
+    if (m_bat.isEmpty())
+        return;
+
+    #ifdef Q_OS_WIN
+      auto ext = ".bat";
+    #else
+      auto ext = ".sh";
+    #endif
+
+    QFile file(scriptPath + "rcc-make" + ext);
+    if (file.open(QIODevice::WriteOnly)) {
+        QTextStream stream(&file);
+
+        auto opt = "--verbose --compress-algo zlib --format-version 1 --binary";
+
+        #ifdef Q_OS_WIN
+        stream << "@echo off" << "\r\n\r\n"
+               << "set rcc=rcc.exe" << "\r\n"
+               << "set opt=" << opt << "\r\n\r\n";
+        #else
+        stream << "#!/usr/bin/bash" << "\n\n"
+               << "opt=" << opt << "\n\n";
+        #endif
+
+        stream << m_bat;
+
+        #ifdef Q_OS_WIN
+        stream << "\r\n" << "pause" << "\r\n";
+        #endif
+
+        file.close();
+    }
+}
+
+void RccReverse::updateLocale(const QLocale &locale)
+{
+    if (m_currLocale != locale) {
+        QLocale::setDefault(locale);
+        m_currLocale = locale;
     }
 }

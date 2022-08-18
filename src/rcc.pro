@@ -22,12 +22,14 @@ SOURCES += \
     main.cpp \
     rcc.cpp \
     rccreverse.cpp \
-    logger.cpp
+    logger.cpp \
+    resinfo.cpp
 
 HEADERS += \
     rcc.h \
     rccreverse.h \
-    logger.h
+    logger.h \
+    resinfo.h
 
 QMAKE_TARGET_DESCRIPTION="Qt Resource Compiler and Decompiler (RccExtended)"
 QMAKE_TARGET_COPYRIGHT="Copyright (C) 2022, The Qt Company Ltd."
