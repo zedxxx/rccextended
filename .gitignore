@@ -7,3 +7,4 @@ bin/*
 /src/Makefile.Release
 /src/.qmake.stash
 /src/rcc_resource.rc
+/build-rcc-*
