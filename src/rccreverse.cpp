@@ -4,7 +4,6 @@
 #include <QTextStream>
 
 #include "logger.h"
-#include "resinfo.h"
 #include "rccreverse.h"
 
 static const QString rootPath("./qresource/");
@@ -35,35 +34,33 @@ void RccReverse::run(const QDir &dir)
 
     Logger logger(rootPath + "log.txt");
 
-    ResInfo resInfo;
-
     const QStringList listFiles = dir.entryList(QStringList("*.rcc"), QDir::Files);
 
-    for (const QString &rccFile : listFiles) {
-        qInfo() << "Processing file:" << rccFile;
+    for (const QString &rccFileName : listFiles) {
+        qInfo() << "Processing file:" << rccFileName;
 
-        resInfo.setFileName(rccFile);
-        if (!resInfo.read()) {
+        m_resInfo.setFileName(rccFileName);
+        if (!m_resInfo.read()) {
             qInfo() << "WARNING: Only resources for the default/system locale will be extracted";
         }
 
         updateLocale();
 
         QResource rcc;
-        rcc.registerResource(rccFile);
+        rcc.registerResource(rccFileName);
 
-        extractResourses(QDir(":/"), resPath + rccFile + "/", resInfo);
+        extractResourses(QDir(":/"), resPath + rccFileName + "/");
 
-        rcc.unregisterResource(rccFile);
+        rcc.unregisterResource(rccFileName);
 
-        qrcSave(rccFile);
-        scriptWrite(rccFile);
+        qrcSave(rccFileName);
+        scriptWrite(rccFileName);
     }
 
     scriptSave();
 }
 
-void RccReverse::extractResourses(const QDir &dir, const QString &destPath, ResInfo &resInfo)
+void RccReverse::extractResourses(const QDir &dir, const QString &destPath)
 {
     if (!mkpath(destPath))
         return;
@@ -78,7 +75,7 @@ void RccReverse::extractResourses(const QDir &dir, const QString &destPath, ResI
         const QString srcFileName(dir.absoluteFilePath(resFile));
          QString destFileName(destPath + resFile);
 
-        const QList<ResItem> info = resInfo.getInfo(srcFileName);
+        const QList<ResItem> info = m_resInfo.getInfo(srcFileName);
 
         if (info.isEmpty()) {
             qInfo() << "Found resource file:" << srcFileName;
@@ -119,13 +116,13 @@ void RccReverse::extractResourses(const QDir &dir, const QString &destPath, ResI
     const QStringList listDirs = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
 
     for (const QString &resDir : listDirs) {
-        qInfo() << "Found resource folder:" << resDir;
+        // qInfo() << "Found resource folder:" << resDir;
         QDir subDir = dir.path() + (dir.path() == ":/" ? "" : "/") + resDir;
-        extractResourses(subDir, destPath + resDir + "/", resInfo);
+        extractResourses(subDir, destPath + resDir + "/");
     }
 }
 
-void RccReverse::extractFile(const QString &fileName, const QString &outFileName, QString lang)
+void RccReverse::extractFile(const QString &fileName, const QString &outFileName, const QString &lang)
 {
     qrcWrite(fileName, outFileName, lang);
 
