@@ -39,6 +39,8 @@ void RccReverse::run(const QDir &dir)
     for (const QString &rccFileName : listFiles) {
         qInfo() << "Processing file:" << rccFileName;
 
+        m_files.clear();
+
         m_resInfo.setFileName(rccFileName);
         if (!m_resInfo.read()) {
             qInfo() << "WARNING: Only resources for the default/system locale will be extracted";
@@ -124,18 +126,63 @@ void RccReverse::extractResourses(const QDir &dir, const QString &destPath)
 
 void RccReverse::extractFile(const QString &fileName, const QString &outFileName, const QString &lang)
 {
-    qrcWrite(fileName, outFileName, lang);
+    const QString uniqueFileName = getUniqueFileName(outFileName);
 
-    if (QFile::exists(outFileName)) {
-        qInfo() << "File already exists:" << outFileName;
+    qrcWrite(fileName, uniqueFileName, lang);
+
+    if (QFile::exists(uniqueFileName)) {
+        qInfo() << "File already exists:" << uniqueFileName;
         return;
     }
 
-    if (QFile::copy(fileName, outFileName)) {
-        qInfo() << "File extracted to:" << outFileName;
+    if (QFile::copy(fileName, uniqueFileName)) {
+        qInfo() << "File extracted to:" << uniqueFileName;
     } else {
-        qInfo() << "ERROR: Can't save file to:" << outFileName;
+        qInfo() << "ERROR: Can't save file to:" << uniqueFileName;
     }
+}
+
+const QString RccReverse::getUniqueFileName(const QString &fileName)
+{
+    #ifdef Q_OS_WIN
+    QString storedName(fileName.toLower());
+    #else
+    QString storedName(fileName);
+    #endif
+
+    if (!m_files.contains(storedName)) {
+        m_files.insert(storedName, 1);
+
+        return fileName;
+    }
+
+    qInfo() << "WARNING: File name collision detected:" << fileName;
+
+    int count = m_files.value(storedName);
+
+    QFileInfo finfo(fileName);
+
+    QString newName = finfo.path() + "/" +
+                      finfo.baseName() + "_(" + QString::number(count) + ")" + "." +
+                      finfo.completeSuffix();
+
+    #ifdef Q_OS_WIN
+    QString newStoredName(newName.toLower());
+    #else
+    QString newStoredName(newName);
+    #endif
+
+    if (!m_files.contains(newStoredName)) {
+        m_files.insert(storedName, count+1);
+        m_files.insert(newStoredName, 1);
+
+        qInfo() << "INFO: File name collision resolved:" << newName;
+
+        return newName;
+    }
+
+    // recursion
+    return getUniqueFileName(newName);
 }
 
 void RccReverse::qrcWrite(const QString &resFileName, const QString &outFileName, const QString &lang)
