@@ -201,12 +201,18 @@ void RccReverse::qrcWrite(const QString &resFileName, const QString &outFileName
                 "    " + alias +
                 "</qresource>" + "\n";
     } else {
-        m_qrc = m_qrc + alias;
+        m_qrc = m_qrc +
+                "<qresource>" + "\n" +
+                "    " + alias +
+                "</qresource>" + "\n";
     }
 }
 
 void RccReverse::qrcSave(const QString &rccFileName)
 {
+    if (m_qrc.isEmpty())
+        return;
+
     QString fileName(rccFileName);
     fileName.replace(".rcc", "");
 
@@ -214,14 +220,14 @@ void RccReverse::qrcSave(const QString &rccFileName)
     if ( file.open(QIODevice::WriteOnly) ) {
         QTextStream stream(&file);
 
-        stream << "<!DOCTYPE RCC><RCC version=\"1.0\">\n"
-               << "<qresource>\n"
-               <<  m_qrc
-               << "</qresource>\n"
-               << "</RCC>\n";
+        stream << "<!DOCTYPE RCC><RCC version=\"1.0\">" << "\n"
+               <<  m_qrc               
+               << "</RCC>" << "\n";
 
         file.close();
     }
+
+    m_qrc.clear();
 }
 
 void RccReverse::scriptWrite(const QString &rccFileName)
@@ -254,9 +260,9 @@ void RccReverse::scriptSave()
         auto opt = "--verbose --compress-algo zlib --format-version 1 --binary";
 
         #ifdef Q_OS_WIN
-        stream << "@echo off" << "\r\n\r\n"
+        stream << "@echo off" << "\r\n" << "\r\n"
                << "set rcc=rcc.exe" << "\r\n"
-               << "set opt=" << opt << "\r\n\r\n";
+               << "set opt=" << opt << "\r\n" << "\r\n";
         #else
         stream << "#!/usr/bin/bash" << "\n\n"
                << "opt=" << opt << "\n\n";
