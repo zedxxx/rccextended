@@ -32,7 +32,7 @@ HEADERS += \
     resinfo.h
 
 QMAKE_TARGET_DESCRIPTION="Qt Resource Compiler and Decompiler (RccExtended)"
-QMAKE_TARGET_COPYRIGHT="Copyright (C) 2022, The Qt Company Ltd."
+QMAKE_TARGET_PRODUCT="Rcc Extended"
 
-VERSION=5.15.2
+VERSION=1.0.5
 RC_ICONS=rcc.ico

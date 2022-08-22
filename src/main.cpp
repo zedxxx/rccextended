@@ -50,7 +50,7 @@
 
 QT_BEGIN_NAMESPACE
 
-#define RCC_VERSION_STR "5.15.2"
+#define RCC_VERSION_STR "1.0.5"
 
 void dumpRecursive(const QDir &dir, QTextStream &out)
 {
@@ -142,7 +142,7 @@ int runRcc(int argc, char *argv[])
     // If you use this code as an example for a translated app, make sure to translate the strings.
     QCommandLineParser parser;
     parser.setSingleDashWordOptionMode(QCommandLineParser::ParseAsLongOptions);
-    parser.setApplicationDescription(QLatin1String("Qt Resource Compiler and Decompiler (ver. " RCC_VERSION_STR ", compiled with Qt " QT_VERSION_STR ")"));
+    parser.setApplicationDescription(QLatin1String("Qt Resource Compiler and Decompiler (RccExtended)"));
     parser.addHelpOption();
     parser.addVersionOption();
 
