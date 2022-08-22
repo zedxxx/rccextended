@@ -1,4 +1,4 @@
-*Read this in other languages: [Русский](readme.ru.md)*
+Read this in other languages: *[Русский](readme.ru.md)*
 
 ----
 
@@ -26,7 +26,7 @@ Once launched, the utility performs the following actions:
   
   - scans working directory looking for `.rcc` files
   - unpacks all found resource files (each to a separate folder)
-  - generates project files `.qrc` and `make.bat` for reverse compilation of resources into a binary form
+  - generates project files `.qrc` and `rcc-make.bat` / `rcc-make.sh` script for reverse compilation of resources into a binary form
   - outputs to the console and logs information about the progress of unpacking 
 
 Usage example:
@@ -40,10 +40,15 @@ Usage example:
 ## How to build from sources?
 
 Windows: 
-    
+
   - install [MSYS2](https://www.msys2.org/wiki/MSYS2-installation/) environment
-  - install qt5-static package
-  - navigate to the `RccExtended/src` folder and run command:
-      ```
-      qmake rcc.pro && make
-      ```
+  - install `qt5-static` package
+  - navigate to the `rccextended/src` folder
+  - compile: `qmake rcc.pro && make`
+
+Ubuntu:
+
+  - install Qt5 packages: `sudo apt install qt5-default qtdeclarative5-dev`
+  - navigate to the `rccextended/src` folder
+  - compile: `qmake rcc.pro && make`
+  - move compiled binary to *.local/bin*: `mv -v rcc ~/.local/bin/`
