@@ -12,6 +12,7 @@ struct ResItem
     qint32 flags;
     quint64 last_modified;
     qint32 size;
+    qint32 offset;
 
     friend QDebug operator<< (QDebug stream, const ResItem &item)
     {
@@ -20,13 +21,12 @@ struct ResItem
                << "language: " << item.language << ", "
                << "flags: " << item.flags << ", "
                << "last-modified: " << item.last_modified << ", "
-               << "size: " << item.size
+               << "size: " << item.size << ", "
+               << "offset: " << item.offset
                << ")";
         return stream;
     }
 };
-
-typedef void (*callback_t)(const QString &itemName, const ResItem &itemInfo, void *userData);
 
 class ResInfo
 {
@@ -39,26 +39,28 @@ public:
         CompressedZstd = 0x04
     };
 
-    explicit ResInfo(const QString &fileName = "");
+    explicit ResInfo();
     ~ResInfo();
 
-    bool read(callback_t onItem = nullptr, void *userData = nullptr);
-    const QList<ResItem> getInfo(const QString &itemName);
-    int getFormatVersion();
-    int getFlags();
+    bool read(const QString &fileName);
 
-    void setFileName(const QString &fileName);
+    QList<ResItem> getInfo(const QString &itemName) const;
+    const QList<QString> getItemNames() const;
+    int getItemsCount() const;
+    int getFormatVersion() const;
+    int getFlags() const;
+
 private:
     void clear();
 
     bool parseHeader(const QString &fileName);
-    bool parseTree(callback_t onItem, void *userData, const QString &dir, const int nodeOffset);
+    bool parseTree(const QString &dir, const int nodeOffset);
 
-    QString getNodeName(qint32 name_offset);
+    QString getNodeName(qint32 name_offset) const;
 
 private:
-    QString m_fileName;
     QMultiHash<QString, ResItem> m_info;
+    QList<QString> m_orderedItemNames;
 
     uchar *m_data = nullptr;
     qsizetype m_data_len = 0;

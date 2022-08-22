@@ -41,8 +41,7 @@ void RccReverse::run(const QDir &dir)
 
         m_files.clear();
 
-        m_resInfo.setFileName(rccFileName);
-        if (!m_resInfo.read()) {
+        if (!m_resInfo.read(rccFileName)) {
             qInfo() << "WARNING: Only resources for the default/system locale will be extracted";
         }
 
@@ -85,6 +84,7 @@ void RccReverse::extractResourses(const QDir &dir, const QString &destPath)
             extractFile(srcFileName, destFileName, "");
         } else {
             for (const ResItem &item : info) {
+
                 QLocale locale(QLocale::Language(item.language),
                                QLocale::Country(item.country));
 
