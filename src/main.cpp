@@ -221,7 +221,8 @@ int runRcc(int argc, char *argv[])
     parser.addOption(formatVersionOption);
 
     QCommandLineOption reverseOption(QStringList{QStringLiteral("r"), QStringLiteral("reverse")},
-                                     QStringLiteral("Unpack binary .rcc files from current directory and generate .qrc files"));
+                                     QStringLiteral("Unpack binary .rcc files from the current directory and generate .qrc files."
+                                                    "You can optionally provide a file mask or a specific file name for processing."));
     parser.addOption(reverseOption);
 
     parser.addPositionalArgument(QStringLiteral("inputs"), QStringLiteral("Input files (*.qrc)."));
@@ -231,8 +232,25 @@ int runRcc(int argc, char *argv[])
     parser.process(app);
 
     if (parser.isSet(reverseOption)) {
-        RccReverse r;
-        r.run(QDir(QLatin1String("./")));
+        QString mask;
+        if (argc == 3) {
+            // optional mask or file name provided
+            mask = argv[2];
+        }
+        if (mask.isEmpty()) {
+            mask = "*.rcc";
+        }
+
+        QStringList files;
+        if (mask.contains("*")) {
+            qInfo("Processing files by mask: '%s'", qPrintable(mask));
+            files = QDir(QLatin1String("./")).entryList(QStringList(mask), QDir::Files);
+        } else if (QFile::exists(mask)) {
+            // single file
+            files.append(mask);
+        }
+
+        RccReverse().run(files);
         return 0;
     }
 

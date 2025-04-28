@@ -13,8 +13,7 @@ static const QString scriptPath(rootPath + "rcc/");
 
 static bool mkpath(const QString &path)
 {
-    QDir dir("./");
-    bool ret = dir.mkpath(path);
+    bool ret = QDir("./").mkpath(path);
 
     if (!ret)
         qInfo() << "ERROR: Can't create folder:" << path;
@@ -27,14 +26,17 @@ RccReverse::RccReverse()
     m_currLocale = QLocale::system();
 }
 
-void RccReverse::run(const QDir &dir)
+void RccReverse::run(const QStringList &listFiles)
 {
+    if (listFiles.isEmpty()) {
+        qInfo() << "ERROR: No input files!";
+        return;
+    }
+
     if (!mkpath(rootPath) || !mkpath(resPath) || !mkpath(qrcPath) || !mkpath(scriptPath) )
         return;
 
     Logger logger(rootPath + "log.txt");
-
-    const QStringList listFiles = dir.entryList(QStringList("*.rcc"), QDir::Files);
 
     for (const QString &rccFileName : listFiles) {
         qInfo() << "Processing file:" << rccFileName;
@@ -48,9 +50,16 @@ void RccReverse::run(const QDir &dir)
         updateLocale();
 
         QResource rcc;
-        rcc.registerResource(rccFileName);
 
-        extractResourses(QDir(":/"), resPath + rccFileName + "/");
+        if (!rcc.registerResource(rccFileName)) {
+            qInfo() << "ERROR: Can't load:" << rccFileName;
+            qInfo() << "This may be because your version of Qt doesn't support this qres version";
+            continue;
+        }
+
+        QString name = QFileInfo(rccFileName).fileName();
+
+        extractResourses(QDir(":/"), resPath + name + "/");
 
         rcc.unregisterResource(rccFileName);
 
@@ -217,8 +226,7 @@ void RccReverse::qrcSave(const QString &rccFileName)
     if (m_qrc.isEmpty())
         return;
 
-    QString fileName(rccFileName);
-    fileName.replace(".rcc", "");
+    QString fileName = QFileInfo(rccFileName).baseName();
 
     QFile file(qrcPath + fileName + ".qrc");
     if ( file.open(QIODevice::WriteOnly) ) {
@@ -236,13 +244,17 @@ void RccReverse::qrcSave(const QString &rccFileName)
 
 void RccReverse::scriptWrite(const QString &rccFileName)
 {
-    QString fileName(rccFileName);
-    fileName.replace(".rcc", "");
+    QString fileName = QFileInfo(rccFileName).baseName();
+
+    QString fileExt = QFileInfo(rccFileName).suffix();
+    if (fileExt.isEmpty()) {
+        fileExt = "rcc";
+    }
 
     #ifdef Q_OS_WIN
-    m_bat = m_bat + "%rcc% %opt% ./../qrc/" + fileName + ".qrc" + " -o ./../rcc/" + fileName + ".rcc\r\n";
+    m_bat = m_bat + "%rcc% %opt% ./../qrc/" + fileName + ".qrc" + " -o ./../rcc/" + fileName + "." + fileExt + "\r\n";
     #else
-    m_bat = m_bat + "rcc ${opt} ./../qrc/" + fileName + ".qrc" + " -o ./../rcc/" + fileName + ".rcc\n";
+    m_bat = m_bat + "rcc ${opt} ./../qrc/" + fileName + ".qrc" + " -o ./../rcc/" + fileName + "." + fileExt + "\n";
     #endif
 }
 

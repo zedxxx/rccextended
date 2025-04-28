@@ -13,7 +13,7 @@ class RccReverse
 {
 public:
     RccReverse();
-    void run(const QDir &dir);
+    void run(const QStringList &listFiles);
 
 private:
     ResInfo m_resInfo;
