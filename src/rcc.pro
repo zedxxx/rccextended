@@ -34,5 +34,5 @@ HEADERS += \
 QMAKE_TARGET_DESCRIPTION="Qt Resource Compiler and Decompiler (RccExtended)"
 QMAKE_TARGET_PRODUCT="Rcc Extended"
 
-VERSION=1.0.5
+VERSION=1.0.6
 RC_ICONS=rcc.ico

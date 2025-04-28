@@ -50,7 +50,7 @@
 
 QT_BEGIN_NAMESPACE
 
-#define RCC_VERSION_STR "1.0.5"
+#define RCC_VERSION_STR "1.0.6"
 
 void dumpRecursive(const QDir &dir, QTextStream &out)
 {
