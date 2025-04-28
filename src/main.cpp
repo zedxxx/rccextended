@@ -220,7 +220,8 @@ int runRcc(int argc, char *argv[])
     QCommandLineOption formatVersionOption(QStringLiteral("format-version"), QStringLiteral("The RCC format version to write"), QStringLiteral("number"));
     parser.addOption(formatVersionOption);
 
-    QCommandLineOption reverseOption(QStringLiteral("reverse"), QStringLiteral("Unpack binary *.rcc files from current directory and generate *.qrc files"));
+    QCommandLineOption reverseOption(QStringList{QStringLiteral("r"), QStringLiteral("reverse")},
+                                     QStringLiteral("Unpack binary .rcc files from current directory and generate .qrc files"));
     parser.addOption(reverseOption);
 
     parser.addPositionalArgument(QStringLiteral("inputs"), QStringLiteral("Input files (*.qrc)."));
