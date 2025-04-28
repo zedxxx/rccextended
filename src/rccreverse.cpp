@@ -137,6 +137,10 @@ void RccReverse::extractFile(const QString &fileName, const QString &outFileName
 
     if (QFile::copy(fileName, uniqueFileName)) {
         qInfo() << "File extracted to:" << uniqueFileName;
+        // We need to set the permissions (644) as they are read only by default
+        if (!QFile::setPermissions(uniqueFileName, QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ReadGroup | QFileDevice::ReadOther)) {
+            qInfo() << "WARNING: Can't set permissions for:" << uniqueFileName;
+        }
     } else {
         qInfo() << "ERROR: Can't save file to:" << uniqueFileName;
     }
