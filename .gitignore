@@ -1,10 +1,13 @@
 bin/*
 
 /src/rcc.pro.user
+/src/rcc.pro.user.*
 /src/release/**
+/src/build/**
 /src/Makefile
 /src/Makefile.Debug
 /src/Makefile.Release
 /src/.qmake.stash
 /src/rcc_resource.rc
 /build-rcc-*
+/test/**

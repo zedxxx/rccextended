@@ -1,54 +1,70 @@
-Read this in other languages: *[Русский](readme.ru.md)*
-
-----
+Read this in other language: [Русский](readme.ru.md)
 
 ## Description
 
-RccExtended - compiler and **decompiler** for binary Qt resources (files with the .rcc extension).
+**RccExtended** is a compiler and **decompiler** of binary Qt resources (files with the `.rcc` extension).
 
-The utility allows you to edit the resources of Qt programs without having their sources.
+It allows you to edit Qt application resources without having access to the source code.
 
-Editing algorithm:
-  
-  - unpack (decompile) binary Qt resources (using this utility)
-  - edit unpacked files (.png, .xml, etc.) by third-party tools
-  - compile of edited files back into binary Qt resources (using this utility)
+This utility is based on the standard Qt resource compiler, with an added resource unpacking feature: command line keys `--reverse` or `-r`.
 
-This utility is based on the standard Qt resource compiler, which has added the function 
-decompilation of resources (command line switch `--reverse`).
+Editing workflow:
 
-To unpack resources, you need to do 2 things:
+  - unpack (decompile) binary Qt resources (using this utility);
+  - edit the unpacked files (.png, .xml, .txt, etc.) with third-party tools;
+  - recompile the edited files back into binary Qt resources (using this utility).
 
-  - go to the folder with resources
-  - run the utility with the `--reverse` key
-  
-Once launched, the utility performs the following actions:
-  
-  - scans working directory looking for `.rcc` files
-  - unpacks all found resource files (each to a separate folder)
-  - generates project files `.qrc` and `rcc-make.bat` / `rcc-make.sh` script for reverse compilation of resources into a binary form
-  - outputs to the console and logs information about the progress of unpacking 
+To unpack resources, follow these steps:
 
-Usage example:
+  - navigate to the folder containing the resources;
+  - run the utility with the `--reverse` or `-r` key.
+
+*Optionally, you can specify a filename pattern or a path to a specific file to unpack (see examples below).*
+
+When launched, the utility performs the following actions:
+
+  - scans the current directory for files with the `.rcc` extension;
+  - unpacks all found resource files (each into its own folder);
+  - generates `.qrc` project files and a `rcc-make.bat` script (or `rcc-make.sh` on Linux) for recompiling resources into binary format;
+  - outputs to the console and logs information about the unpacking process.
+
+## Examples
+
+Unpack all resource files with the `*.rcc` extension in the current directory:
 ```
-    cd /Path/To/My/QtResources
+    cd path-to-my-qt-resources
     rcc --reverse
 ```
 
-----
+Unpack all resource files with the `*.qbtheme` extension in the current directory:
+```
+    cd path-to-my-qt-resources
+    rcc --reverse *.qbtheme
+```
 
-## How to build from sources?
+Unpack a specific file:
+```
+    rcc -r example.rcc
+```
 
-Windows: 
+## Compilation
 
-  - install [MSYS2](https://www.msys2.org/wiki/MSYS2-installation/) environment
-  - install `qt5-static` package
-  - navigate to the `rccextended/src` folder
-  - compile: `qmake rcc.pro && make`
+On Windows:
+  
+  - install [MSYS2](https://www.msys2.org/)
+  - install the [qt5-static](https://packages.msys2.org/base/mingw-w64-qt5-static) package
+  - open a `mingw64` or `ucrt64` shell and navigate to the `rccextended/src` folder
+  - run the command `qmake rcc.pro && make`
 
-Ubuntu:
+On Ubuntu:
 
   - install Qt5 packages: `sudo apt install qt5-default qtdeclarative5-dev`
   - navigate to the `rccextended/src` folder
-  - compile: `qmake rcc.pro && make`
-  - move compiled binary to *.local/bin*: `mv -v rcc ~/.local/bin/`
+  - run the command: `qmake rcc.pro && make`
+  - move the compiled binary to `~/.local/bin` using: `mv -v rcc ~/.local/bin/`
+
+## Installation
+
+The program is fully portable, requires no installation, and consists of a single file: `rcc.exe`.
+
+For convenience, it is recommended to place the program in the folder `C:\Program Files\RccExtended\` and add this path to the system PATH environment variable. 
