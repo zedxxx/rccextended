@@ -49,16 +49,16 @@ Unpack a specific file:
 
 ## Compilation
 
-On Windows:
+On Windows 10:
   
-  - install [MSYS2](https://www.msys2.org/)
-  - install the [qt5-static](https://packages.msys2.org/base/mingw-w64-qt5-static) package
-  - open a `mingw64` or `ucrt64` shell and navigate to the `rccextended/src` folder
+  - install [MSYS2](https://www.msys2.org/) environment
+  - install [gcc](https://packages.msys2.org/packages/mingw-w64-x86_64-gcc), [qt5-static](https://packages.msys2.org/base/mingw-w64-qt5-static) and [libzstd](https://packages.msys2.org/base/mingw-w64-zstd) packages: `pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-qt5-static mingw-w64-x86_64-zstd`
+  - open a `mingw64` shell and navigate to the `rccextended/src` folder
   - run the command `qmake rcc.pro && make`
 
-On Ubuntu:
+On Ubuntu 24.04 LTS:
 
-  - install Qt5 packages: `sudo apt install qt5-default qtdeclarative5-dev`
+  - install C++ compiler, Qt5 and libzstd packages: `sudo apt install build-essential qtbase5-dev qtbase5-dev-tools qt5-qmake qtchooser libzstd-dev`
   - navigate to the `rccextended/src` folder
   - run the command: `qmake rcc.pro && make`
   - move the compiled binary to `~/.local/bin` using: `mv -v rcc ~/.local/bin/`

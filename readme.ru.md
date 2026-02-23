@@ -50,16 +50,16 @@ Read this in other language: [English](readme.md)
 
 ## Компиляция
 
-Под Windows:
+Под Windows 10:
   
   - установить окружение [MSYS2](https://www.msys2.org/)
-  - установить пакет [qt5-static](https://packages.msys2.org/base/mingw-w64-qt5-static)
-  - из командной строки mingw64 или ucrt64 перейти в папку `rccextended/src`
+  - установить пакеты [gcc](https://packages.msys2.org/packages/mingw-w64-x86_64-gcc), [qt5-static](https://packages.msys2.org/base/mingw-w64-qt5-static) и [libzstd](https://packages.msys2.org/base/mingw-w64-zstd): `pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-qt5-static mingw-w64-x86_64-zstd`
+  - из командной строки mingw64 перейти в папку `rccextended/src`
   - выполнить команду `qmake rcc.pro && make`
 
-Под Ubuntu:
+Под Ubuntu 24.04 LTS:
 
-  - установить пакеты Qt5: `sudo apt install qt5-default qtdeclarative5-dev`
+  - установить C++ компилятор, Qt5 и libzstd: `sudo apt install build-essential qtbase5-dev qtbase5-dev-tools qt5-qmake qtchooser libzstd-dev`
   - перейти в папку `rccextended/src`
   - выполнить команду: `qmake rcc.pro && make`
   - переместить скомпилированный бинарник в `~/.local/bin` командой: `mv -v rcc ~/.local/bin/`
