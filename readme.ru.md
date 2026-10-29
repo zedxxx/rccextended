@@ -69,3 +69,10 @@ Read this in other language: [English](readme.md)
 Программа полностью портативная, не требует установки и представляет собой один файл `rcc.exe`
 
 Для удобства использования рекомендуется поместить программу в папку `C:\Program Files\RccExtended\` и добавить этот путь в переменную среды PATH.
+
+## Лицензия
+
+RccExtended основан на Qt Resource Compiler (`rcc`) и распространяется под лицензией **GNU General Public License v3.0 only** с исключением **The Qt Company GPL Exception 1.0**.
+
+- Полный текст лицензии: [LICENSE](LICENSE)
+- Исключение Qt GPL: [LICENSE.GPL3-EXCEPT](LICENSE.GPL3-EXCEPT)

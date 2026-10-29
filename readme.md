@@ -68,3 +68,10 @@ On Ubuntu 24.04 LTS:
 The program is fully portable, requires no installation, and consists of a single file: `rcc.exe`.
 
 For convenience, it is recommended to place the program in the folder `C:\Program Files\RccExtended\` and add this path to the system PATH environment variable. 
+
+## License
+
+RccExtended is derived from the Qt Resource Compiler (`rcc`) and is licensed under the **GNU General Public License v3.0 only**, with **The Qt Company GPL Exception 1.0**.
+
+- Full license text: [LICENSE](LICENSE)
+- Qt GPL exception: [LICENSE.GPL3-EXCEPT](LICENSE.GPL3-EXCEPT)
